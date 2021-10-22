@@ -1,0 +1,8 @@
+/cdk/imports/k8s.js
+/cdk/imports/k8s.d.ts
+/cdk/lib/service.js
+/cdk/lib/service.d.ts
+/cdk/main.d.ts
+/cdk/main.js
+/cdk/node_modules/
+/venv/

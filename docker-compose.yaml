@@ -1,0 +1,62 @@
+version: '3'
+
+services:
+  db:
+    image: mongo:4.2
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${DB_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${DB_PASSWORD}
+      - MONGO_INITDB_DATABASE=${DB_NAME}
+    ports: 
+      - "27017:27017"
+
+  rabbitmq:
+    image: rabbitmq:3.7-management
+    hostname: rabbitmq
+    container_name: rabbitmq
+#    volumes:
+#      - ./.docker/rabbitmq/data/:/var/lib/rabbitmq/
+#      - ./.docker/rabbitmq/logs/:/var/logs/rabbitmq/
+    environment:
+      RABBITMQ_ERLANG_COOKIE: SWQOKODSQALRPCLNMEQG
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+      RABBITMQ_DEFAULT_VHOST: /
+    ports:
+      - 5672:5672
+      - 5671:5671
+      - 15672:15672
+      - 15671:15671
+      
+  endpoint:
+#    image: cdk8demo_endpoint
+    build: endPoint/.
+    hostname: endpoint
+    ports:
+      - "5000:5000"
+    environment:
+      - DB_HOSTNAME=${DB_HOSTNAME}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+      - RABBITMQ_HOSTNAME=${RABBITMQ_HOSTNAME}
+      - RABBITMQ_POST=${RABBITMQ_POST}
+    depends_on:
+      - db
+      - rabbitmq
+
+  service:
+#    image: cdk8demo_service
+    build: service/.
+    hostname: service
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+      - RABBITMQ_HOSTNAME=${RABBITMQ_HOSTNAME}
+      - RABBITMQ_POST=${RABBITMQ_POST}
+    depends_on:
+      - db
+      - rabbitmq

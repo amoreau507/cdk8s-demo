@@ -1,0 +1,215 @@
+apiVersion: "v1"
+kind: "Service"
+metadata:
+  name: "rabbitmq"
+spec:
+  ports:
+    - port: 5672
+      targetPort: 5672
+  selector:
+    app: "cdk-rabbitmq-c8bddb47"
+  type: "LoadBalancer"
+---
+apiVersion: "apps/v1"
+kind: "Deployment"
+metadata:
+  name: "cdk-rabbitmq-deployment-c86fd520"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: "cdk-rabbitmq-c8bddb47"
+  template:
+    metadata:
+      labels:
+        app: "cdk-rabbitmq-c8bddb47"
+    spec:
+      containers:
+        - env:
+            - name: "RABBITMQ_DEFAULT_USER"
+              value: "username"
+            - name: "RABBITMQ_DEFAULT_PASS"
+              value: "password"
+          image: "rabbitmq:3-management-alpine"
+          name: "rabbitmqtest2"
+          ports:
+            - containerPort: 5672
+          resources:
+            limits:
+              cpu: "0m"
+              memory: "0Mi"
+      dnsConfig:
+        nameservers:
+          - "127.0.0.1"
+      hostname: "rabbitmq"
+      subdomain: "sub-domain"
+---
+apiVersion: "v1"
+kind: "Service"
+metadata:
+  name: "db"
+spec:
+  ports:
+    - port: 27017
+      targetPort: 27017
+  selector:
+    app: "cdk-dynamodb-c850de99"
+  type: "LoadBalancer"
+---
+apiVersion: "apps/v1"
+kind: "Deployment"
+metadata:
+  name: "cdk-dynamodb-deployment-c846aba3"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: "cdk-dynamodb-c850de99"
+  template:
+    metadata:
+      labels:
+        app: "cdk-dynamodb-c850de99"
+    spec:
+      containers:
+        - env:
+            - name: "MONGO_INITDB_ROOT_USERNAME"
+              value: "admin"
+            - name: "MONGO_INITDB_ROOT_PASSWORD"
+              value: "admin"
+            - name: "MONGO_INITDB_DATABASE"
+              value: "mongo"
+          image: "mongo:4.2"
+          name: "dbtest2"
+          ports:
+            - containerPort: 27017
+          resources:
+            limits:
+              cpu: "0m"
+              memory: "0Mi"
+      dnsConfig:
+        nameservers:
+          - "127.0.0.1"
+      hostname: "db"
+      subdomain: "sub-domain"
+---
+apiVersion: "v1"
+kind: "Service"
+metadata:
+  name: "endpoint"
+spec:
+  ports:
+    - name: "http"
+      port: 30157
+      protocol: "TCP"
+      targetPort: 5000
+  selector:
+    app: "cdk-endpoint-c8ab986e"
+  type: "LoadBalancer"
+---
+apiVersion: "apps/v1"
+kind: "Deployment"
+metadata:
+  name: "cdk-endpoint-deployment-c8503228"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: "cdk-endpoint-c8ab986e"
+  template:
+    metadata:
+      labels:
+        app: "cdk-endpoint-c8ab986e"
+    spec:
+      containers:
+        - env:
+            - name: "DB_HOSTNAME"
+              value: "db"
+            - name: "DB_USERNAME"
+              value: "admin"
+            - name: "DB_PASSWORD"
+              value: "admin"
+            - name: "DB_PORT"
+              value: "27017"
+            - name: "DB_NAME"
+              value: "mongo"
+            - name: "RABBITMQ_DEFAULT_USER"
+              value: "username"
+            - name: "RABBITMQ_DEFAULT_PASS"
+              value: "password"
+            - name: "RABBITMQ_HOSTNAME"
+              value: "rabbitmq"
+            - name: "RABBITMQ_POST"
+              value: "5672"
+          image: "public.ecr.aws/u5o6b5p7/cdk8demo:endpoint"
+          name: "endpointtest2"
+          ports:
+            - containerPort: 5000
+          resources:
+            limits:
+              cpu: "0m"
+              memory: "0Mi"
+      dnsConfig:
+        nameservers:
+          - "127.0.0.1"
+      hostname: "endpoint"
+      subdomain: "sub-domain"
+---
+apiVersion: "v1"
+kind: "Service"
+metadata:
+  name: "service"
+spec:
+  ports:
+    - port: 4321
+      targetPort: 4321
+  selector:
+    app: "cdk-service-c8813553"
+  type: "LoadBalancer"
+---
+apiVersion: "apps/v1"
+kind: "Deployment"
+metadata:
+  name: "cdk-service-deployment-c8bcb48a"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: "cdk-service-c8813553"
+  template:
+    metadata:
+      labels:
+        app: "cdk-service-c8813553"
+    spec:
+      containers:
+        - env:
+            - name: "DB_HOSTNAME"
+              value: "db"
+            - name: "DB_USERNAME"
+              value: "admin"
+            - name: "DB_PASSWORD"
+              value: "admin"
+            - name: "DB_PORT"
+              value: "27017"
+            - name: "DB_NAME"
+              value: "mongo"
+            - name: "RABBITMQ_DEFAULT_USER"
+              value: "username"
+            - name: "RABBITMQ_DEFAULT_PASS"
+              value: "password"
+            - name: "RABBITMQ_HOSTNAME"
+              value: "rabbitmq"
+            - name: "RABBITMQ_POST"
+              value: "5672"
+          image: "public.ecr.aws/u5o6b5p7/cdk8demo:service"
+          name: "servicetest2"
+          ports:
+            - containerPort: 4321
+          resources:
+            limits:
+              cpu: "0m"
+              memory: "0Mi"
+      dnsConfig:
+        nameservers:
+          - "127.0.0.1"
+      hostname: "service"
+      subdomain: "sub-domain"
